@@ -165,13 +165,11 @@
              "yum install -y R", "\n",
              "wget https://download2.rstudio.org/rstudio-server-rhel-1.0.153-x86_64.rpm", "\n",
              "yum install -y --nogpgcheck rstudio-server-rhel-1.0.153-x86_64.rpm", "\n",
-             "rm -F rstudio-server-rhel-1.0.153-x86_64.rpm", "\n",
              "R -e \"install.packages('shiny', repos='http://cran.rstudio.com/')\"", "\n",
              "wget https://download3.rstudio.org/centos5.9/x86_64/shiny-server-1.5.4.869-rh5-x86_64.rpm", "\n",
              "yum install -y --nogpgcheck shiny-server-1.5.4.869-rh5-x86_64.rpm", "\n",
-             "rm -F shiny-server-1.5.4.869-rh5-x86_64.rpm", "\n",
              "useradd david", "\n",
-             "echo david:password | chpasswd"
+             "echo david:thepass | chpasswd"
         ]]}}
       }
     },
@@ -272,7 +270,21 @@
           "ToPort" : "80",
           "SourceSecurityGroupOwnerId" : {"Fn::GetAtt" : ["ElasticLoadBalancer", "SourceSecurityGroup.OwnerAlias"]},
           "SourceSecurityGroupName" : {"Fn::GetAtt" : ["ElasticLoadBalancer", "SourceSecurityGroup.GroupName"]}
-        } ]
+        },
+        {
+          "IpProtocol" : "tcp",
+          "FromPort" : "0.0.0.0/0",
+          "ToPort" : "8787",
+          "SourceSecurityGroupOwnerId" : {"Fn::GetAtt" : ["ElasticLoadBalancer", "SourceSecurityGroup.OwnerAlias"]},
+          "SourceSecurityGroupName" : "Rstudio"
+        },
+        {
+          "IpProtocol" : "tcp",
+          "FromPort" : "3030",
+          "ToPort" : "0.0.0.0/0",
+          "SourceSecurityGroupOwnerId" : {"Fn::GetAtt" : ["ElasticLoadBalancer", "SourceSecurityGroup.OwnerAlias"]},
+          "SourceSecurityGroupName" : "R"
+        }]
       }
     }
   },
