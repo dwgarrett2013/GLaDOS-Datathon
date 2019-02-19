@@ -7,9 +7,11 @@
     "InstanceType" : {
       "Description" : "WebServer EC2 instance type",
       "Type" : "String",
-      "Default" : "t2.small",
+      "Default" : "t3.2xlarge",
       "AllowedValues" : [
-        "t2.small"
+        "t2.small",
+        "t2.large",
+        "t3.2xlarge"
       ],
       "ConstraintDescription" : "must be a valid EC2 instance type."
     },
@@ -19,7 +21,7 @@
       "Type": "String",
       "AllowedPattern": "([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)",
       "ConstraintDescription": "must be a valid email address.",
-      "Default" : "davidwg@gmail.com"
+      "Default" : "dwgarrett2013@gmail.com"
     },
 
     "KeyName" : {
@@ -41,11 +43,11 @@
 
   "Mappings" : {
     "AWSInstanceType2Arch" : {
-      "t2.small"    : { "Arch" : "HVM64"  }
+      "t3.2xlarge"    : { "Arch" : "HVM64"  }
     },
 
     "AWSInstanceType2NATArch" : {
-      "t2.small"    : { "Arch" : "NATHVM64"  }
+      "t3.2xlarge"    : { "Arch" : "NATHVM64"  }
     }
 ,
     "AWSRegionArch2AMI" : {
@@ -61,7 +63,6 @@
         "Subscription": [ { "Endpoint": { "Ref": "OperatorEMail" }, "Protocol": "email" } ]
       }
     },
-
     "WebServerGroup" : {
       "Type" : "AWS::AutoScaling::AutoScalingGroup",
       "Properties" : {
@@ -145,6 +146,7 @@
       },
       "Properties" : {
         "KeyName" : { "Ref" : "KeyName" },
+        "IamInstanceProfile" : "ec2-standard",
         "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
                                           { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
         "SecurityGroups" : [ { "Ref" : "InstanceSecurityGroup" } ],
@@ -165,11 +167,13 @@
              "yum install -y R", "\n",
              "wget https://download2.rstudio.org/rstudio-server-rhel-1.0.153-x86_64.rpm", "\n",
              "yum install -y --nogpgcheck rstudio-server-rhel-1.0.153-x86_64.rpm", "\n",
+             "rm -F rstudio-server-rhel-1.0.153-x86_64.rpm", "\n",
              "R -e \"install.packages('shiny', repos='http://cran.rstudio.com/')\"", "\n",
              "wget https://download3.rstudio.org/centos5.9/x86_64/shiny-server-1.5.4.869-rh5-x86_64.rpm", "\n",
              "yum install -y --nogpgcheck shiny-server-1.5.4.869-rh5-x86_64.rpm", "\n",
+             "rm -F shiny-server-1.5.4.869-rh5-x86_64.rpm", "\n",
              "useradd david", "\n",
-             "echo david:thepass | chpasswd"
+             "echo david:password | chpasswd"
         ]]}}
       }
     },
@@ -270,20 +274,6 @@
           "ToPort" : "80",
           "SourceSecurityGroupOwnerId" : {"Fn::GetAtt" : ["ElasticLoadBalancer", "SourceSecurityGroup.OwnerAlias"]},
           "SourceSecurityGroupName" : {"Fn::GetAtt" : ["ElasticLoadBalancer", "SourceSecurityGroup.GroupName"]}
-        },
-        {
-          "IpProtocol" : "tcp",
-          "FromPort" : "-1",
-          "ToPort" : "8787",
-          "SourceSecurityGroupOwnerId" : {"Fn::GetAtt" : ["ElasticLoadBalancer", "SourceSecurityGroup.OwnerAlias"]},
-          "SourceSecurityGroupName" : "Rstudio"
-        },
-        {
-          "IpProtocol" : "tcp",
-          "FromPort" : "-1",
-          "ToPort" : "3030",
-          "SourceSecurityGroupOwnerId" : {"Fn::GetAtt" : ["ElasticLoadBalancer", "SourceSecurityGroup.OwnerAlias"]},
-          "SourceSecurityGroupName" : "R"
         }]
       }
     }
